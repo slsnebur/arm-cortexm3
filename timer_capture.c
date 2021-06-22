@@ -8,15 +8,16 @@
 // Uruchomienie: w debugerze-symulatorze:
 //
 // - otworzyc okna: Peripherals->GPIO-> porty A i B
-// - w oknie Watch 1 (View -> Watch Windows) dodac zmienna time_ms i wyswielic jej wartosc w sys. dziesietnym
+// - w oknie Watch 1 (View -> Watch Windows) dodac zmienna time_us i wyswielic jej wartosc w sys. dziesietnym
 // - sterowanie linia A0 ("generowanie impulsu") w rzedzie "pins" (linia zanaczona - stan wysoki)
 
-// opcjonalnie mozna otworzyc okno timera 2:
-// (Peripherals->Timers->Timer 2)
+// opcjonalnie mozna otworzyc okna:
+// - View->Analysis windows->Logic Analyzer (dobrac skale czasu)
+// - timera 2 (Peripherals->Timers->Timer 2)
 
 #include "stm32f10x.h"
 
-volatile uint32_t time_ms;
+volatile uint32_t time_us;
 
 int main(){ 
 
@@ -56,8 +57,13 @@ int main(){
 // zgodnie z ustawieniami projektu timer taktowany jest sygnalem zegarowym
 // o czestotliwosci 0.5 MHz
 // 16-bitowy preskaler (PSC) dzieli przez liczebe o 1 wieksza niz wpisana!
+// 15.1
+/* 
+15.1
+1khz
+*/
 	
-//	TIM2->PSC	=											// preskaler TIM2
+	TIM2->PSC	=	499;										// preskaler TIM2
  	
   TIM2->ARR = 65535;										// pojemnosc licznika - maks. czas pomiaru
 	
@@ -82,13 +88,13 @@ int main(){
 // --- 2 --- wlacz licznik
 // Timer2 Control Register 1 (CR1), bit 0 (rozdzial 15.4.1)
 
-//  TIM2->CR1	=
+ TIM2->CR1 = TIM_CR1_CEN;
 
 // --- petla glowna ---
 
 	for(;;) {
 		GPIOC->ODR = TIM2->CNT;								// tylko do wizualizacji
-		(GPIOB->ODR) ? (time_ms=0) : (time_ms=TIM2->CCR1);
+		(GPIOB->ODR) ? (time_us=0) : (time_us=TIM2->CCR1);
 	}
 } 
 
@@ -100,13 +106,14 @@ void TIM2_IRQHandler(void) {
 // Timer2 Status Register (SR), bit 1 (rozdzial 15.4.5)
 // bit ten kasuje sie wpisujac na odpowiednia pozycje zero! (i nie modyfukujac pozostalych bitow)
 	
-//	TIM2->SR =
+	TIM2->SR = 0 << 1;
 
 // --- 4 --- zmien reakcje na zbocze rosnace<->opadajace
 // Timer2 Capture/Compare Enable Register (CCER), bit 1 (rozdzial 15.4.9)
 // w kazdym wywolaniu procedury obslugi przerwania zmien ten bit na przeciwny
 	
-//	TIM2->CCER =
+/* Za kazdym razem na przeciwne (XOR)*/
+	TIM2->CCER ^= 1 << 1;
 		
 	GPIOB->ODR ^= 0xFFFF;										// podczas pomiaru czasu zmien stan wszystkich linii portu B na 1	
 }

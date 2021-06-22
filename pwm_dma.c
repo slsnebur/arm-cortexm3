@@ -5,48 +5,47 @@ volatile uint32_t CouNTer, CCR1_register;
 //--- 1 ---
 //
 // Uzupelnic tablice duty_tab (kilkanascie elementow)
-// "losowymi" wspolczynnikami wypelnienia
+// wspolczynnikami wypelnienia
 // z zakresu 0 - ARR (maks. 2^16 - 1 = 65535)
 // w praktyce (symulacja...) ARR = maks. kilka tysiecy.
 
-// uint16_t duty_tab[...]={...};
+ uint16_t duty_tab[8]={0, 127, 63, 255, 511, 900, 800, 1023};
 
-int main ()  {
+int main ()  { 
 
 // --- Konfiguracja peryferiow ---
-
+	
 // Zmiana zrodla syganlu zegarowego
 // z wewnetrznego (HSI) na zewnetrzne (HSE)
-
+	
 	RCC->CR |= 1<<16;											// wlacz HSE
 	while (!(RCC->CR & (1<<17)));					// czekaj na ustabilizowanie HSE
-	RCC->CFGR = 1;												// HSE jako zegar glowny
-	RCC->CR &= ~1;
+	RCC->CFGR = 1;												// HSE jako zegar glowny	
+	RCC->CR &= ~1;		
 
 //--- RCC - Reset Clock Control
-
-  RCC->APB2ENR |= (1<<2) | (1<<0);			//wlacz GPIO A i B
-	RCC->APB1ENR |= (1<<1) | (1<<0);			//wlacz TIM2 i 3
+ 	
+  RCC->APB2ENR |= (1<<2) | (1<<0);			//wlacz GPIO A i B	
+	RCC->APB1ENR |= (1<<1) | (1<<0);			//wlacz TIM2 i 3 	
 	RCC->AHBENR |= 1;											//wlacz DMA1
 
 //--- Konfiguracja linii 6 portu A
-
+	
 	GPIOA->CRL  &= ~(15<<24);							//wyzeruj pola MODE6 i CNF6
 	GPIOA->CRL  |= (1<<24);								//MODE - output
 	GPIOA->CRL  |= (2<<26);								//CNF - alternate out, push-pull
 
 //--- Konfiguracja timera TIM2
 //
-// f_CK_INT = 1 MHz
-//
 //--- 2a ---
 //
-// Ustawic jego czestotliwosc
+// Ustawic jego czestotliwosc 
 // generowania zgloszen transferow DMA
 // na kilka (np. 0.5 - 5) Hz
 
-//	TIM2->PSC			=
-//  TIM2->ARR     = 
+	// 2hz
+	TIM2->PSC			= 999;
+  TIM2->ARR     = 499;
   TIM2->DIER   |= 1<<8;       					//DMA/IRQ Enable Register - en IRQ on update 
   TIM2->CR1    |= 1;	// wlacz timer 
 
@@ -66,8 +65,9 @@ int main ()  {
 // czetotliwosc przebiegu PWM 10 Hz
 // zgloszenia DMA co 1 s
 
-//	TIM3->PSC 		=
-//	TIM3->ARR 		=
+// 20hz
+	TIM3->PSC 		= 48;
+	TIM3->ARR 		= 1023;
 
 // Capture/Compare Mode Register 1
 
@@ -93,7 +93,7 @@ int main ()  {
 //
 // liczba przesylanych elementow tablicy duty_tab
 	
-//	DMA1_Channel2->CNDTR =
+	DMA1_Channel2->CNDTR = 8;
 	
 // adresy: zrodlowy i docelowy
 	

@@ -42,8 +42,8 @@ int main() {
 
 //--- Konfiguracja timera TIM2
 
-	TIM2->PSC		= 1999;										// preskaler=2000: 1 MHz / 2000 = 0.5 kHz
-  TIM2->ARR		= 499;										// pojemnosc licznika=500 (od 0 do 499), przepelnienie co 1 s (1 Hz)
+	TIM2->PSC		= 1999;										// preskaler=2000: 2 MHz / 2000 = 1 kHz
+  TIM2->ARR		= 499;										// pojemnosc licznika=500 (od 0 do 999), przepelnienie co 0.5 s (2 Hz)
   TIM2->DIER	|= 1;											// wlacz generowanie przerwan w chwili pzepelnienia licznika 
   TIM2->CR1		|= 1;											// wlacz timer
 
@@ -51,7 +51,7 @@ int main() {
 
 	for(;;){			
 		main_counter++;
-		while (GPIOA->IDR & 255);						// "przyblokuj" wykonywanie petli glownej programu
+		while (GPIOA->IDR & 127);						// "przyblokuj" wykonywanie petli glownej programu
 	}																			// jesli ktorakolwiek z mlodszych linii potu A
 																				// jest w stanie wysokim
 } 

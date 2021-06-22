@@ -57,9 +57,10 @@ int main(void){
 // Ustawic "odpowiednia" czestotliwosc probkowania stanu przycisku
 // (czestotliwosc generowania przerwan przez TIM2).
 // Czestotliwosc sygn. taktujacego timer = 1 MHz
+// Preskaler i licznik 16 bitowe
 
-//	TIM2->PSC =
-//	TIM2->ARR =
+	TIM2->PSC = 9999;
+	TIM2->ARR = 4;
 	TIM2->DIER |= 1;
 	TIM2->CR1 |= 1;
 
@@ -67,30 +68,25 @@ int main(void){
 
 	for(;;) {
 	
-// --- 3 ---
+// --- 2 ---
 //
 // Dopisac, wykorzystujac Bit Set/Reset Register (BSRR):
-//
+//		
 // jezeli swtch_state = 1 to linia 15 portu C = 1, w przeciwnym wypadku = 0
 //
-// STM32F103 Reference manual, rozdzial 9, opis rejestru BSRR str. 173.
-
+// STM32F103 Reference manual, rozdzial 9, opis rejestru BSRR str. 173.		
+		if(sw_state) GPIOC->BSRR = 1<<15;
+		else GPIOC->BSRR = 1<<31;				
 	}
 }
 
 // --- procedura obslugi przerwania TIM2 ---
 
 void TIM2_IRQHandler(void) {
+	
+	TIM2->SR &= ~1;
 
-// --- 2 ---
-//
-// Skasuj flage oczekiwania na obsluge przerwania
-	// przepelnienia timera (opis: rozdzial	15, str. 410)
-
-
-//	TIM2->SR =
-
-// --- 4 ---
+// --- 3 ---
 //
 // Zadanie opcjonalne - zmodyfikowac "pojemnosc" bufora
 // oraz liczbe testowanych probek.
